@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskType {
+  daily
+  weekly
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  accountId  String     @unique @map("account_id")
+  password   String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+  characters Character[]
+
+  @@map("User")
+}
+
+model Character {
+  id         Int      @id @default(autoincrement())
+  userId     Int     @map("user_id")
+  server     String
+  name       String
+  job        String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks      Task[]
+
+  @@map("Character")
+}
+
+model Task {
+  id            Int        @id @default(autoincrement())
+  characterId   Int        @map("character_id")
+  type          TaskType
+  name          String
+  maxCount      Int        @map("max_count")
+  currentCount  Int        @default(0) @map("current_count")
+  lastReset     DateTime   @map("last_reset")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+  character     Character  @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@map("Task")
+}
